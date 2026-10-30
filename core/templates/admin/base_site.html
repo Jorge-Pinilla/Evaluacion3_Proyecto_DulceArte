@@ -1,0 +1,177 @@
+{% extends "admin/base_site.html" %}
+
+{% block extrastyle %}
+<!-- Importamos la misma fuente cursiva elegante (Great Vibes) que usamos en la página principal -->
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+    :root {
+        --primary-color: #3c133a;
+        --primary-hover: #270b25;
+        --accent-color: #d81b60;
+        --morado-claro: #f4eef4; /* Morado pastel muy suave y claro para el fondo */
+    }
+
+    /* --- PANEL DE ADMINISTRACIÓN GENERAL --- */
+    #header {
+        background-color: var(--primary-color) !important;
+        color: #ffffff !important;
+        border-bottom: 4px solid var(--accent-color);
+        padding: 10px 20px;
+    }
+
+    #header a:link, #header a:visited {
+        color: #ffffff !important;
+    }
+
+    #branding h1 a {
+        color: #ffffff !important;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .button, input[type=submit], input[type=button], .submit-row input, a.button {
+        background: var(--primary-color) !important;
+        color: #ffffff !important;
+        border-radius: 50rem !important;
+        border: none !important;
+        padding: 8px 20px !important;
+        box-shadow: 0 4px 10px rgba(60, 19, 58, 0.2);
+        transition: all 0.2s ease-in-out;
+    }
+
+    .button:hover, input[type=submit]:hover {
+        background: var(--primary-hover) !important;
+        transform: translateY(-1px);
+    }
+
+    a:link, a:visited {
+        color: var(--primary-color);
+    }
+
+    .breadcrumbs {
+        background-color: #f8f9fa !important;
+        color: #666 !important;
+        border-bottom: 1px solid #eaeaea;
+        padding: 10px 20px;
+    }
+
+    .module h2, .module caption, .inline-group h2 {
+        background-color: #f1f3f5 !important;
+        color: var(--primary-color) !important;
+        font-weight: 700;
+    }
+
+    /* --- PANTALLA DE LOGIN CON FONDO MORADO CLARO --- */
+    body.login {
+        background: var(--morado-claro) !important; /* Fondo morado suave y claro */
+        font-family: 'Inter', sans-serif;
+        height: 100vh;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    body.login #container {
+        background: #ffffff !important;
+        border-radius: 1.25rem !important;
+        box-shadow: 0 15px 35px rgba(60, 19, 58, 0.12) !important;
+        overflow: hidden !important;
+        border: 1px solid #e8dbe8 !important;
+        width: 400px !important;
+        max-width: 90vw;
+        float: none !important;
+        margin: auto !important;
+    }
+
+    body.login #header {
+        display: none !important;
+    }
+
+    /* Franja superior del login con tipografía cursiva "Dulce Arte" exactamente igual a la página */
+    body.login #content::before {
+        content: "Dulce Arte";
+        display: block;
+        background: var(--primary-color);
+        color: #ffffff;
+        font-family: 'Great Vibes', cursive; /* Tipografía cursiva elegante */
+        font-size: 2.5rem;
+        font-weight: normal;
+        text-align: center;
+        padding: 20px 20px 10px 20px;
+        border-bottom: 4px solid var(--accent-color);
+        margin: -30px -30px 25px -30px;
+        letter-spacing: 1px;
+    }
+
+    body.login #content {
+        padding: 30px !important;
+        background: #ffffff !important;
+        color: #333333 !important;
+    }
+
+    body.login .form-row {
+        border: none !important;
+        padding: 0 0 15px 0 !important;
+        background: transparent !important;
+    }
+
+    body.login .form-row label {
+        color: #495057 !important;
+        font-weight: 600;
+        font-size: 0.85rem;
+        margin-bottom: 6px;
+        display: block;
+        float: none !important;
+        width: 100% !important;
+        text-align: left !important;
+    }
+
+    body.login .form-row input {
+        border-radius: 0.75rem !important;
+        border: 1px solid #ced4da !important;
+        padding: 12px 15px !important;
+        width: 100% !important;
+        box-sizing: border-box;
+        background: #f8f9fa !important;
+        font-size: 0.95rem;
+    }
+
+    body.login .form-row input:focus {
+        border-color: var(--primary-color) !important;
+        box-shadow: 0 0 0 3px rgba(60, 19, 58, 0.15) !important;
+        background: #ffffff !important;
+        outline: none;
+    }
+
+    body.login .submit-row {
+        background: transparent !important;
+        border: none !important;
+        padding: 15px 0 0 0 !important;
+        margin: 0 !important;
+        text-align: center !important;
+    }
+
+    body.login .submit-row input {
+        width: 100% !important;
+        padding: 12px !important;
+        font-size: 1rem !important;
+        font-weight: 600 !important;
+        border-radius: 50rem !important;
+        background: var(--primary-color) !important;
+        cursor: pointer;
+        float: none !important;
+    }
+
+    body.login .submit-row input:hover {
+        background: var(--accent-color) !important;
+    }
+
+    body.login .password-reset-link {
+        text-align: center;
+        margin-top: 20px;
+    }
+</style>
+{% endblock %}

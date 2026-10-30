@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block content %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+<div class="row justify-content-center text-center py-5 my-4">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm p-5 rounded-4" style="background-color: #ffffff;">
+            <div class="mb-2">
+                <span class="display-1 fw-bold" style="color: #3c133a; font-family: 'Great Vibes', cursive;">404</span>
+            </div>
+            <h3 class="fw-bold text-dark mb-2">🍰 ¡Ups! Receta o Página no encontrada</h3>
+            <p class="text-muted mb-4" style="font-size: 0.95rem;">
+                La página que intentas consultar no existe, ha sido movida o la dirección ingresada es incorrecta.
+            </p>
+            <div>
+                <a href="{% url 'dashboard' %}" class="btn btn-primary px-4 py-2 rounded-pill fw-semibold shadow-sm">
+                    <i class="bi bi-house-door me-2"></i>Volver al Inicio
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

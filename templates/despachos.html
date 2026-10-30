@@ -1,0 +1,183 @@
+{% extends 'base.html' %}
+{% block content %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold text-dark mb-1">🚚 Rutas de Despacho Activas</h2>
+        <p class="text-muted mb-0">Gestiona las entregas asignadas, firma digitalmente la recepción o sube el comprobante fotográfico.</p>
+    </div>
+    
+    {% if pedidos_sin_despacho %}
+    <button type="button" class="btn btn-outline-primary rounded-pill shadow-sm" data-bs-toggle="modal" data-bs-target="#crearDespachoModal">
+        <i class="bi bi-plus-lg me-1"></i> Asignar Pedido Existente
+    </button>
+    {% endif %}
+</div>
+
+<div class="row g-4">
+    {% for despacho in despachos %}
+    <div class="col-md-6 col-lg-4">
+        <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden border-top border-4" style="border-top-color: #3c133a !important;">
+            <div class="card-body p-4 d-flex flex-column">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="badge bg-light text-dark border fw-bold">Pedido #{{ despacho.pedido.id }}</span>
+                    <small class="text-muted fw-semibold">📅 {{ despacho.pedido.fecha_entrega|date:"d/m H:i" }}</small>
+                </div>
+
+                <h5 class="fw-bold text-dark mb-1">🎂 {{ despacho.pedido.producto.nombre }}</h5>
+                <p class="small text-muted mb-3">👤 Cliente: <strong>{% if despacho.pedido.nombre_cliente %}{{ despacho.pedido.nombre_cliente }}{% else %}{{ despacho.pedido.cliente.username }}{% endif %}</strong></p>
+
+                <div class="p-3 rounded-3 mb-3" style="background-color: #f8f0f8; border-left: 4px solid #3c133a;">
+                    <small class="text-uppercase fw-bold text-muted d-block mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">DIRECCIÓN DE ENTREGA:</label>
+                    <p class="mb-0 fw-semibold text-dark" style="font-size: 0.9rem;">📍 {{ despacho.direccion_entrega }}</p>
+                </div>
+
+                {% if despacho.pedido.detalles_diseno %}
+                <p class="small text-secondary mb-4 bg-light p-2 rounded border border-light">
+                    {{ despacho.pedido.detalles_diseno }}
+                </p>
+                {% endif %}
+
+                <div class="mt-auto pt-3 border-top d-flex justify-content-between align-items-center">
+                    <span class="badge bg-warning text-dark px-3 py-2 rounded-pill"><i class="bi bi-clock-history me-1"></i> En Ruta</span>
+                    
+                    <button type="button" class="btn btn-primary btn-sm px-3 rounded-pill fw-semibold btn-completar"
+                            data-bs-toggle="modal" 
+                            data-bs-target="#completarModal"
+                            data-despacho-id="{{ despacho.id }}"
+                            data-cliente="{% if despacho.pedido.nombre_cliente %}{{ despacho.pedido.nombre_cliente }}{% else %}{{ despacho.pedido.cliente.username }}{% endif %}">
+                        <i class="bi bi-check-circle me-1"></i> Completar Entrega
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="text-center py-5 bg-white rounded-4 shadow-sm">
+            <i class="bi bi-check2-circle text-success fs-1 d-block mb-2"></i>
+            <h5 class="fw-bold text-dark mb-1">¡No hay despachos pendientes!</h5>
+            <p class="text-muted small mb-0">Todas las rutas han sido entregadas y confirmadas correctamente.</p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Modal 1: Completar Entrega con Firma y/o Foto -->
+<div class="modal fade" id="completarModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header border-0 pb-0 pt-4 px-4">
+                <h5 class="modal-title fw-bold text-dark">✍️ Confirmación de Entrega</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="formCompletar" method="POST" enctype="multipart/form-data" action="">
+                {% csrf_token %}
+                <div class="modal-body px-4 py-3">
+                    <p class="text-muted small mb-3">Registra la firma digital del cliente o adjunta una fotografía del comprobante de recepción.</p>
+
+                    <!-- Firma Digital en Panel Canvas -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold mb-1">Firma Digital del Cliente</label>
+                        <div class="border rounded-3 overflow-hidden bg-white text-center position-relative">
+                            <canvas id="signatureCanvas" width="400" height="150" style="touch-action: none; cursor: crosshair;"></canvas>
+                            <button type="button" id="btnClearSignature" class="btn btn-light btn-sm position-absolute top-0 end-0 m-2 border" title="Limpiar firma">
+                                <i class="bi bi-eraser me-1"></i> Limpiar
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Foto Comprobante -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Comprobante Fotográfico (Opcional)</label>
+                        <input type="file" name="foto_comprobante" accept="image/*" class="form-control" style="border-radius: 0.75rem;">
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pb-4 px-4 d-flex justify-content-end gap-2">
+                    <button type="button" class="btn btn-outline-secondary px-4 rounded-pill fw-semibold" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success px-4 rounded-pill fw-semibold shadow-sm">Confirmar Entrega</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal 2: Asignar Pedido Existente a Despacho -->
+{% if pedidos_sin_despacho %}
+<div class="modal fade" id="crearDespachoModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header border-0 pb-0 pt-4 px-4">
+                <h5 class="modal-title fw-bold text-dark">🚚 Asignar Ruta de Despacho</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{% url 'crear_despacho_manual' %}" method="POST">
+                {% csrf_token %}
+                <div class="modal-body px-4 py-3">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Seleccionar Pedido Pendiente</label>
+                        <select name="pedido_id" class="form-select" required style="border-radius: 0.75rem;">
+                            {% for p in pedidos_sin_despacho %}
+                            <option value="{{ p.id }}">Pedido #{{ p.id }} - {{ p.producto.nombre }} ({% if p.nombre_cliente %}{{ p.nombre_cliente }}{% else %}{{ p.cliente.username }}{% endif %})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Dirección de Entrega</label>
+                        <input type="text" name="direccion_entrega" class="form-control" placeholder="Ej: Av. Alemania 01234, Temuco" required style="border-radius: 0.75rem;">
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pb-4 px-4 d-flex justify-content-end gap-2">
+                    <button type="button" class="btn btn-outline-secondary px-4 rounded-pill fw-semibold" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary px-4 rounded-pill fw-semibold shadow-sm">Crear Ruta</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const completarModal = document.getElementById('completarModal');
+        const formCompletar = document.getElementById('formCompletar');
+        const canvas = document.getElementById('signatureCanvas');
+        const ctx = canvas.getContext('2d');
+        const btnClear = document.getElementById('btnClearSignature');
+        let drawing = false;
+
+        // Configuración de trazo del Canvas para firma digital
+        ctx.lineWidth = 2.5;
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = '#3c133a';
+
+        function getPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return { x: clientX - rect.left, y: clientY - rect.top };
+        }
+
+        canvas.addEventListener('mousedown', (e) => { drawing = true; ctx.beginPath(); const pos = getPos(e); ctx.moveTo(pos.x, pos.y); });
+        canvas.addEventListener('mousemove', (e) => { if (!drawing) return; const pos = getPos(e); ctx.lineTo(pos.x, pos.y); ctx.stroke(); });
+        canvas.addEventListener('mouseup', () => drawing = false);
+        
+        // Soporte Táctil para móviles/tablets del repartidor
+        canvas.addEventListener('touchstart', (e) => { drawing = true; ctx.beginPath(); const pos = getPos(e); ctx.moveTo(pos.x, pos.y); });
+        canvas.addEventListener('touchmove', (e) => { if (!drawing) return; e.preventDefault(); const pos = getPos(e); ctx.lineTo(pos.x, pos.y); ctx.stroke(); });
+        canvas.addEventListener('touchend', () => drawing = false);
+
+        btnClear.addEventListener('click', () => { ctx.clearRect(0, 0, canvas.width, canvas.height); });
+
+        completarModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            const despachoId = button.getAttribute('data-despacho-id');
+            formCompletar.action = `/despachos/${despachoId}/completar/`;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        });
+    });
+</script>
+{% endblock %}

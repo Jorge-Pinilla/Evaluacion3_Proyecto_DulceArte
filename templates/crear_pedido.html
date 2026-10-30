@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row justify-content-center mt-4">
+    <div class="col-md-7">
+        <div class="card shadow-sm border-0 p-4 rounded-4">
+            <h3 class="fw-bold mb-2" style="color: #3c133a !important;">🍰 Registrar Pedido Personalizado</h3>
+            <p class="text-muted small mb-4">Selecciona uno de nuestros pasteles artesanales, ingresa las especificaciones y el sistema gestionará la orden, el inventario (BOM) y la ruta de despacho.</p>
+            
+            <form method="POST">
+                {% csrf_token %}
+                
+                <!-- Nombre del Cliente -->
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Nombre del Cliente / Clienta</label>
+                    <input type="text" name="nombre_cliente" class="form-control" placeholder="Ej: María González" required style="border-radius: 0.75rem;">
+                </div>
+
+                <!-- Input oculto para enviar el ID del producto seleccionado -->
+                <input type="hidden" name="producto_id" id="producto_id" required>
+
+                <!-- Selector Personalizado con Scroll -->
+                <div class="mb-3 position-relative">
+                    <label class="form-label fw-semibold">Seleccionar Variedad de Pastel</label>
+                    
+                    <button type="button" class="form-select form-select-lg fs-6 text-start d-flex justify-content-between align-items-center shadow-none bg-white border-secondary-subtle" id="dropdownBtn" style="border-radius: 0.75rem;">
+                        <span id="selectedLabel" class="text-muted">-- Seleccione un pastel de la carta --</span>
+                    </button>
+
+                    <!-- Lista desplegable limitada con Scrollbar -->
+                    <div class="card position-absolute w-100 shadow-lg border-0 mt-1 d-none rounded-3 z-3 overflow-hidden" id="dropdownMenu" style="top: 100%; left: 0;">
+                        <div class="list-group list-group-flush overflow-y-auto" style="max-height: 220px;">
+                            {% for prod in productos %}
+                            <button type="button" class="list-group-item list-group-item-action py-3 px-3 border-bottom d-flex justify-content-between align-items-center option-item" data-value="{{ prod.id }}" data-name="{{ prod.nombre }} — ${{ prod.precio_base }}">
+                                <span class="fw-medium text-dark">🎂 {{ prod.nombre }}</span>
+                                <span class="badge rounded-pill px-3 py-2" style="background-color: #3c133a; color: #ffffff;">${{ prod.precio_base }}</span>
+                            </button>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dirección de Entrega para la Ruta de Despacho -->
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Dirección de Entrega (Despacho)</label>
+                    <input type="text" name="direccion_entrega" class="form-control" placeholder="Ej: Av. Alemania 01234, Temuco" required style="border-radius: 0.75rem;">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Especificaciones, Relleno o Diseño Personalizado</label>
+                    <textarea name="detalles_diseno" class="form-control" rows="3" placeholder="Ej: Dedicatoria especial, alergias o detalles de decoración solicitados..." required style="border-radius: 0.75rem;"></textarea>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-semibold">Fecha y Hora de Entrega</label>
+                    <input type="datetime-local" name="fecha_entrega" class="form-control" required style="border-radius: 0.75rem;">
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center">
+                    <a href="{% url 'kanban' %}" class="btn btn-outline-secondary px-4 rounded-pill">Cancelar</a>
+                    <button type="submit" class="btn btn-primary px-4 fw-semibold shadow-sm">Guardar y Generar Ruta</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const btn = document.getElementById('dropdownBtn');
+        const menu = document.getElementById('dropdownMenu');
+        const hiddenInput = document.getElementById('producto_id');
+        const selectedLabel = document.getElementById('selectedLabel');
+        const options = document.querySelectorAll('.option-item');
+
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            menu.classList.toggle('d-none');
+        });
+
+        options.forEach(opt => {
+            opt.addEventListener('click', function() {
+                const val = this.getAttribute('data-value');
+                const name = this.getAttribute('data-name');
+                
+                hiddenInput.value = val;
+                selectedLabel.textContent = name;
+                selectedLabel.classList.remove('text-muted');
+                selectedLabel.classList.add('text-dark', 'fw-bold');
+                
+                menu.classList.add('d-none');
+            });
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!btn.contains(e.target) && !menu.contains(e.target)) {
+                menu.classList.add('d-none');
+            }
+        });
+    });
+</script>
+{% endblock %}
