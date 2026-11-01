@@ -1,6 +1,9 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
-from .models import Pedido, Insumo, Despacho, Producto, RecetaBOM
+from django.contrib import messages
+from django.contrib.auth.forms import AuthenticationForm
+from .models import Pedido, Insumo, Despacho, Producto, RecetaBOM, User
 
 # Multiplicador base para garantizar stock inicial suficiente para 15 pasteles
 CANTIDAD_PASTELES_STOCK = 15
@@ -171,7 +174,6 @@ def inicializar_bodega_completa():
         for ing in datos["ingredientes"]:
             stock_minimo_15_pasteles = round(ing["cantidad"] * CANTIDAD_PASTELES_STOCK, 2)
             
-            # get_or_create asigna stock_actual únicamente en la CREACIÓN inicial
             insumo_obj, _ = Insumo.objects.get_or_create(
                 nombre=ing["nombre"],
                 defaults={
@@ -188,6 +190,57 @@ def inicializar_bodega_completa():
             )
 
 
+# --- AUTENTICACIÓN Y REGISTRO ---
+
+def registro_view(request):
+    """Permite el registro de nuevos usuarios seleccionando su rol."""
+    if request.user.is_authenticated:
+        return redirect('dashboard')
+        
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        role = request.POST.get('role')
+
+        if User.objects.filter(username=username).exists():
+            messages.error(request, 'El nombre de usuario ya está registrado.')
+        else:
+            user = User.objects.create_user(username=username, email=email, password=password, role=role)
+            login(request, user)
+            messages.success(request, f'¡Bienvenido/a {username}! Registro exitoso.')
+            return redirect('dashboard')
+            
+    return render(request, 'registro.html')
+
+
+def login_view(request):
+    """Inicio de sesión en el sistema Dulce Arte."""
+    if request.user.is_authenticated:
+        return redirect('dashboard')
+        
+    if request.method == 'POST':
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
+            login(request, user)
+            return redirect('dashboard')
+        else:
+            messages.error(request, 'Usuario o contraseña incorrectos.')
+    else:
+        form = AuthenticationForm()
+        
+    return render(request, 'login.html', {'form': form})
+
+
+def logout_view(request):
+    """Cierra la sesión activa del usuario."""
+    logout(request)
+    return redirect('login')
+
+
+# --- VISTAS PRINCIPALES CON CONTROL DE PERMISOS ---
+
 @login_required
 def dashboard_view(request):
     """Vista principal con el resumen de la pastelería."""
@@ -196,14 +249,22 @@ def dashboard_view(request):
 
 @login_required
 def kanban_view(request):
-    """Tablero Kanban para la cocina. Muestra todos los pedidos activos."""
+    """Tablero Kanban para cocina y taller. Accesible para Vendedor, Cocinero, Dueño y Admin."""
+    if request.user.role not in ['VENDEDOR', 'COCINERO', 'DUENO', 'ADMIN']:
+        messages.error(request, 'No tienes permisos para acceder al tablero Kanban.')
+        return redirect('dashboard')
+        
     pedidos = Pedido.objects.exclude(estado='DESPACHADO').order_by('fecha_entrega')
     return render(request, 'kanban.html', {'pedidos': pedidos})
 
 
 @login_required
 def inventario_view(request):
-    """Vista para revisar el stock de insumos (BOM)."""
+    """Vista de stock de insumos (BOM). Accesible para Cocinero, Dueño y Admin."""
+    if request.user.role not in ['COCINERO', 'DUENO', 'ADMIN']:
+        messages.error(request, 'No tienes permisos para gestionar el inventario (BOM).')
+        return redirect('dashboard')
+
     inicializar_bodega_completa()
     insumos = Insumo.objects.all().order_by('nombre')
     return render(request, 'inventario.html', {'insumos': insumos})
@@ -211,56 +272,27 @@ def inventario_view(request):
 
 @login_required
 def despachos_view(request):
-    """Muestra los despachos pendientes y permite asignación rápida para pedidos existentes."""
+    """Muestra las rutas activas. Accesible para Repartidor, Dueño y Admin."""
+    if request.user.role not in ['REPARTIDOR', 'DUENO', 'ADMIN']:
+        messages.error(request, 'No tienes permisos para acceder al módulo de despachos.')
+        return redirect('dashboard')
+
     despachos = Despacho.objects.filter(confirmacion_firma=False).order_by('pedido__fecha_entrega')
-    pedidos_sin_despacho = Pedido.objects.filter(despacho__isnull=True)
+    pedidos_sin_despacho = Pedido.objects.filter(despacho__isnull=True).exclude(estado='DESPACHADO')
+    
     return render(request, 'despachos.html', {
         'despachos': despachos,
         'pedidos_sin_despacho': pedidos_sin_despacho
     })
 
-@login_required
-def completar_despacho_view(request, despacho_id):
-    """Procesa la entrega con firma digital y/o foto comprobante."""
-    if request.method == 'POST':
-        despacho = get_object_or_404(Despacho, id=despacho_id)
-        despacho.confirmacion_firma = True
-        
-        if 'foto_comprobante' in request.FILES:
-            despacho.foto_comprobante = request.FILES['foto_comprobante']
-            
-        despacho.save()
-        
-        # Actualizar estado del pedido a entregado
-        despacho.pedido.estado = 'DESPACHADO'
-        despacho.pedido.save()
-        
-    return redirect('despachos')
-
-@login_required
-def crear_despacho_manual_view(request):
-    """Permite crear ruta de despacho para pedidos antiguos que no la tenían."""
-    if request.method == 'POST':
-        pedido_id = request.POST.get('pedido_id')
-        direccion = request.POST.get('direccion_entrega')
-        
-        pedido = get_object_or_404(Pedido, id=pedido_id)
-        Despacho.objects.get_or_create(
-            pedido=pedido,
-            defaults={
-                'repartidor': request.user,
-                'direccion_entrega': direccion,
-                'confirmacion_firma': False
-            }
-        )
-    return redirect('despachos')
-
 
 @login_required
 def crear_pedido_view(request):
-    """
-    Registra el pedido, descuenta BOM y crea automáticamente el objeto Despacho.
-    """
+    """Registra pedido, descuenta BOM y genera despacho. Accesible para Vendedor, Dueño y Admin."""
+    if request.user.role not in ['VENDEDOR', 'DUENO', 'ADMIN']:
+        messages.error(request, 'No tienes permisos para registrar nuevos pedidos.')
+        return redirect('kanban')
+
     inicializar_bodega_completa()
     productos = Producto.objects.all()
 
@@ -273,7 +305,6 @@ def crear_pedido_view(request):
         
         producto = get_object_or_404(Producto, id=producto_id)
         
-        # 1. Crear Pedido
         pedido = Pedido.objects.create(
             cliente=request.user,
             nombre_cliente=nombre_cliente,
@@ -283,7 +314,6 @@ def crear_pedido_view(request):
             estado='RECIBIDO'
         )
         
-        # 2. Crear automáticamente la Ruta de Despacho
         Despacho.objects.create(
             pedido=pedido,
             repartidor=request.user,
@@ -291,7 +321,6 @@ def crear_pedido_view(request):
             confirmacion_firma=False
         )
         
-        # 3. Descuento de stock en bodega (BOM)
         items_receta = RecetaBOM.objects.filter(producto=producto)
         for item in items_receta:
             insumo = item.insumo
@@ -304,12 +333,55 @@ def crear_pedido_view(request):
 
 
 @login_required
+def completar_despacho_view(request, despacho_id):
+    """Procesa la entrega con firma digital y/o foto comprobante."""
+    if request.method == 'POST':
+        despacho = get_object_or_404(Despacho, id=despacho_id)
+        despacho.confirmacion_firma = True
+        
+        if 'foto_comprobante' in request.FILES:
+            despacho.foto_comprobante = request.FILES['foto_comprobante']
+            
+        despacho.save()
+        despacho.pedido.estado = 'DESPACHADO'
+        despacho.pedido.save()
+        
+    return redirect('despachos')
+
+
+@login_required
+def crear_despacho_manual_view(request):
+    """Asigna la ruta de despacho al pedido seleccionado."""
+    if request.method == 'POST':
+        pedido_id = request.POST.get('pedido_id')
+        direccion = request.POST.get('direccion_entrega')
+        
+        pedido = get_object_or_404(Pedido, id=pedido_id)
+        
+        despacho, created = Despacho.objects.get_or_create(
+            pedido=pedido,
+            defaults={
+                'repartidor': request.user,
+                'direccion_entrega': direccion,
+                'confirmacion_firma': False
+            }
+        )
+        if not created:
+            despacho.direccion_entrega = direccion
+            despacho.confirmacion_firma = False
+            despacho.save()
+
+    return redirect('despachos')
+
+
+@login_required
 def eliminar_pedido_view(request, pedido_id):
     """Vista para eliminar un pedido del sistema desde el tablero Kanban."""
     if request.method == 'POST':
         pedido = get_object_or_404(Pedido, id=pedido_id)
         pedido.delete()
     return redirect('kanban')
+
 
 @login_required
 def agregar_insumo_view(request):
@@ -347,6 +419,7 @@ def eliminar_insumo_view(request, insumo_id):
         insumo = get_object_or_404(Insumo, id=insumo_id)
         insumo.delete()
     return redirect('inventario')
+
 
 def error_404_view(request, exception):
     """Vista personalizada para el manejo de errores 404 (Página no encontrada)."""

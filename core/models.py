@@ -3,13 +3,17 @@ from django.db import models
 
 # 1. USUARIOS Y ROLES
 class User(AbstractUser):
-    ROLE_CHOICES = (
-        ('CLIENTE', 'Cliente'),
-        ('VENDEDOR', 'Vendedor / Atención'),
-        ('COCINERO', 'Cocinero / Pastelero'),
-        ('REPARTIDOR', 'Repartidor / Despacho'),
+    ROLES = (
+        ('ADMIN', 'Administrador'),
+        ('DUENO', 'Dueño / Administración'),
+        ('VENDEDOR', 'Vendedor'),
+        ('COCINERO', 'Cocinero / Taller'),
+        ('REPARTIDOR', 'Repartidor / Despachos'),
     )
-    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='CLIENTE')
+    role = models.CharField(max_length=20, choices=ROLES, default='VENDEDOR')
+
+    def __str__(self):
+        return f"{self.username} ({self.get_role_display()})"
 
 # 2. INVENTARIO (Insumos)
 class Insumo(models.Model):

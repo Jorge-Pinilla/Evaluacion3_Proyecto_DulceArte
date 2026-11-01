@@ -2,8 +2,8 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls import path, include, re_path  # <-- 're_path' agregado
-from django.views.static import serve            # <-- 'serve' agregado
+from django.urls import path, include, re_path
+from django.views.static import serve
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework import permissions
@@ -23,10 +23,12 @@ from core.views import (
     eliminar_insumo_view,
     completar_despacho_view,
     crear_despacho_manual_view,
-    error_404_view
+    error_404_view,
+    login_view,       # <-- Vista de inicio de sesión
+    registro_view,    # <-- Vista de registro
+    logout_view       # <-- Vista de cierre de sesión
 )
 
-# Manejador de error 404 global
 handler404 = 'core.views.error_404_view'
 
 router = DefaultRouter()
@@ -52,7 +54,12 @@ urlpatterns = [
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/docs/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     
-    # Rutas Web (Templates)
+    # Autenticación y Registro
+    path('login/', login_view, name='login'),
+    path('registro/', registro_view, name='registro'),
+    path('logout/', logout_view, name='logout'),
+    
+    # Rutas Web
     path('', dashboard_view, name='dashboard'),
     path('kanban/', kanban_view, name='kanban'),
     path('inventario/', inventario_view, name='inventario'),
@@ -70,7 +77,6 @@ urlpatterns = [
     path('despachos/crear_manual/', crear_despacho_manual_view, name='crear_despacho_manual'),
 ]
 
-# Servir archivos estáticos e imágenes incluso con DEBUG = False en entorno local
 urlpatterns += [
     re_path(r'^static/(?P<path>.*)$', serve, {'document_root': settings.STATIC_ROOT}),
     re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),

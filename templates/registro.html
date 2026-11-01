@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row justify-content-center my-4">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-lg rounded-4 p-4" style="background-color: #ffffff;">
+            <div class="text-center mb-4">
+                <span class="display-5 fw-bold" style="color: #3c133a; font-family: 'Great Vibes', cursive;">Dulce Arte</span>
+                <h4 class="fw-bold text-dark mt-2">Registro de Usuario</h4>
+                <p class="text-muted small">Crea tu cuenta seleccionando tu perfil de trabajo</p>
+            </div>
+
+            {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-danger rounded-3 small p-2 text-center mb-3">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="POST">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label fw-semibold text-dark">Nombre de Usuario</label>
+                    <input type="text" name="username" class="form-control" placeholder="Ej: vendedor1" required style="border-radius: 0.75rem;">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold text-dark">Correo Electrónico</label>
+                    <input type="email" name="email" class="form-control" placeholder="usuario@dulcearte.cl" required style="border-radius: 0.75rem;">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold text-dark">Seleccionar Rol / Cargo</label>
+                    <select name="role" class="form-select" required style="border-radius: 0.75rem;">
+                        <option value="VENDEDOR">Vendedor (Pedidos y Kanban)</option>
+                        <option value="COCINERO">Cocinero / Taller (Kanban e Inventario)</option>
+                        <option value="REPARTIDOR">Repartidor / Despachos (Rutas)</option>
+                        <option value="DUENO">Dueño / Administración (Acceso Total)</option>
+                        <option value="ADMIN">Administrador (Acceso Total)</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label class="form-label fw-semibold text-dark">Contraseña</label>
+                    <input type="password" name="password" class="form-control" placeholder="••••••••" required style="border-radius: 0.75rem;">
+                </div>
+                <button type="submit" class="btn btn-primary w-100 py-2 rounded-pill fw-semibold shadow-sm mb-3">
+                    Registrar Cuenta
+                </button>
+            </form>
+
+            <div class="text-center border-top pt-3">
+                <span class="text-muted small">¿Ya posees una cuenta registrada?</span>
+                <a href="{% url 'login' %}" class="fw-bold text-decoration-none ms-1" style="color: #3c133a;">Inicia sesión</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

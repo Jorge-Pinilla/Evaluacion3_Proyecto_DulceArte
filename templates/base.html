@@ -5,114 +5,308 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Dulce Arte - Sabor y Armonía</title>
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Bootstrap 5 CSS -->
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Bootstrap 5 & Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
     <style>
         :root {
-            --morado-principal: #3c133a; /* Morado oscuro elegante */
-            --morado-oscuro: #270b25;
-            --morado-claro: #f4eef4;   /* Morado pastel claro y sofisticado */
+            --brand-plum: #3c133a;
+            --brand-plum-dark: #250924;
+            --brand-plum-light: #521d50;
+            --brand-bg: #f5eff5;
+            --brand-accent: #e0a3d7;
         }
+
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--morado-claro) !important; /* Fondo general en morado claro */
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--brand-bg) !important;
+            color: #2b2b2b;
         }
-        /* Navbar superior limpia (fondo blanco como pediste) */
-        .navbar-dulce {
-            background-color: #ffffff;
-            border-bottom: 1px solid #eaeaea;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-            padding-top: 0;
-            padding-bottom: 0;
+
+        /* Envoltorio Flotante de la Navegación */
+        .navbar-floating-container {
+            padding: 0.75rem 1.5rem;
         }
+
+        .navbar-modern {
+            background: rgba(255, 255, 255, 0.88) !important;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(60, 19, 58, 0.08);
+            border-radius: 1.25rem;
+            box-shadow: 0 10px 30px rgba(60, 19, 58, 0.08);
+            padding: 0.65rem 1.25rem;
+            transition: all 0.3s ease;
+        }
+
+        /* Logotipo Cursivo y Marca */
         .logo-cursivo {
             font-family: 'Great Vibes', cursive;
-            font-size: 2.2rem;
-            color: var(--morado-principal) !important;
+            font-size: 2.3rem;
+            color: var(--brand-plum) !important;
             line-height: 1;
             text-decoration: none;
+            transition: transform 0.2s ease;
         }
-        .nav-section-morada {
-            background-color: var(--morado-principal);
-            padding: 1rem 2rem;
-            border-top-left-radius: 1rem;
-            border-bottom-left-radius: 1rem;
+
+        .logo-cursivo:hover {
+            transform: scale(1.03);
         }
-        .nav-section-morada .nav-link {
-            font-weight: 500;
-            color: #ffffff !important;
-            transition: opacity 0.2s ease-in-out;
+
+        .brand-subtitle {
+            font-size: 0.68rem;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            color: #8a7388;
         }
-        .nav-section-morada .nav-link:hover {
-            opacity: 0.8;
-        }
-        /* Tarjetas con estilo moderno y limpio sobre el fondo claro */
-        .card {
-            border: none;
-            border-radius: 1rem;
-            box-shadow: 0 0.5rem 1rem rgba(60, 19, 58, 0.06);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-        .card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 1rem 2rem rgba(60, 19, 58, 0.1);
-        }
-        .btn-primary {
-            background-color: var(--morado-principal);
-            border-color: var(--morado-principal);
+
+        /* Cápsula de Navegación Morada */
+        .nav-pill-wrapper {
+            background: linear-gradient(135deg, var(--brand-plum) 0%, var(--brand-plum-dark) 100%);
             border-radius: 50rem;
-            padding: 0.5rem 1.5rem;
-            font-weight: 600;
+            padding: 0.4rem 0.6rem;
+            box-shadow: 0 4px 15px rgba(60, 19, 58, 0.2);
         }
-        .btn-primary:hover {
-            background-color: var(--morado-oscuro);
-            border-color: var(--morado-oscuro);
+
+        .nav-pill-wrapper .nav-link {
+            color: rgba(255, 255, 255, 0.88) !important;
+            font-size: 0.88rem;
+            font-weight: 600;
+            padding: 0.5rem 1rem !important;
+            border-radius: 50rem;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .nav-pill-wrapper .nav-link:hover {
+            color: #ffffff !important;
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-1px);
+        }
+
+        .nav-pill-wrapper .nav-link.active {
+            background: rgba(255, 255, 255, 0.22);
+            color: #ffffff !important;
+        }
+
+        /* Badge y Chip de Perfil de Usuario */
+        .user-chip {
+            background: #ffffff;
+            border: 1px solid rgba(60, 19, 58, 0.12);
+            border-radius: 50rem;
+            padding: 0.35rem 0.85rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .role-badge {
+            background-color: var(--brand-bg);
+            color: var(--brand-plum);
+            font-weight: 700;
+            font-size: 0.72rem;
+            padding: 0.25rem 0.65rem;
+            border-radius: 50rem;
+            letter-spacing: 0.3px;
+        }
+
+        /* Botones Globales Estilizados */
+        .btn-brand-primary {
+            background-color: var(--brand-plum);
+            border-color: var(--brand-plum);
+            color: #ffffff;
+            border-radius: 50rem;
+            padding: 0.5rem 1.4rem;
+            font-weight: 700;
+            font-size: 0.88rem;
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 12px rgba(60, 19, 58, 0.18);
+        }
+
+        .btn-brand-primary:hover {
+            background-color: var(--brand-plum-dark);
+            border-color: var(--brand-plum-dark);
+            color: #ffffff;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(60, 19, 58, 0.25);
+        }
+
+        .btn-swagger {
+            background: #ffffff;
+            color: var(--brand-plum) !important;
+            font-weight: 700;
+            font-size: 0.78rem;
+            border-radius: 50rem;
+            padding: 0.25rem 0.85rem;
+            border: 1px solid rgba(60, 19, 58, 0.15);
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+        .btn-swagger:hover {
+            background: var(--brand-bg);
+            transform: scale(1.03);
+        }
+
+        .btn-admin-panel {
+            background: var(--brand-plum);
+            color: #ffffff !important;
+            font-weight: 700;
+            font-size: 0.72rem;
+            border-radius: 50rem;
+            padding: 0.2rem 0.85rem;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            box-shadow: 0 2px 6px rgba(60, 19, 58, 0.2);
+        }
+
+        .btn-admin-panel:hover {
+            background: var(--brand-plum-dark);
+            color: #ffd1e1 !important;
+            transform: scale(1.03);
+        }
+
+        .btn-logout {
+            border: 1px solid rgba(220, 53, 69, 0.3);
+            color: #dc3545;
+            border-radius: 50rem;
+            padding: 0.35rem 0.9rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            background: transparent;
+        }
+
+        .btn-logout:hover {
+            background-color: #dc3545;
+            color: #ffffff;
         }
     </style>
 </head>
 <body class="d-flex flex-column min-vh-100">
 
-    <!-- Barra de Navegación Principal -->
-    <nav class="navbar navbar-expand-lg navbar-light navbar-dulce mb-4">
-        <div class="container-fluid px-0">
+    <!-- Envoltorio Superior Flotante -->
+    <header class="navbar-floating-container sticky-top">
+        <nav class="navbar navbar-expand-xl navbar-light navbar-modern container-fluid">
             
-            <div class="px-4 py-2 d-flex align-items-center gap-3">
-                <a class="logo-cursivo" href="{% url 'dashboard' %}">
-                    Dulce Arte
-                </a>
-                <span class="text-muted small border-start ps-3" style="font-size: 0.75rem; letter-spacing: 1px;">SABOR Y ARMONÍA</span>
-            </div>
+            <!-- Identidad de Marca / Logotipo -->
+            <a class="d-flex align-items-center gap-3 text-decoration-none me-4" href="{% url 'dashboard' %}">
+                <span class="logo-cursivo">Dulce Arte</span>
+                <span class="brand-subtitle border-start ps-3 d-none d-sm-inline">SABOR Y ARMONÍA</span>
+            </a>
 
-            <button class="navbar-toggler border-0 me-3" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <!-- Botón Colapsable Móvil -->
+            <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarDulceContent">
                 <span class="navbar-toggler-icon"></span>
             </button>
 
-            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
-                <div class="nav-section-morada">
-                    <ul class="navbar-nav align-items-center gap-3">
-                        <li class="nav-item"><a class="nav-link" href="{% url 'dashboard' %}">Inicio</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{% url 'kanban' %}">Tablero Kanban</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{% url 'crear_pedido' %}">Nuevo Pedido</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{% url 'inventario' %}">Inventario (BOM)</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{% url 'despachos' %}">Despachos</a></li>
-                        <li class="nav-item ms-2">
-                            <a class="btn btn-light btn-sm px-3 py-2 fw-semibold rounded-pill text-dark" href="/api/docs/" target="_blank">⚡ API Swagger</a>
+            <!-- Menú Principal Dinámico -->
+            <div class="collapse navbar-collapse justify-content-between mt-3 mt-xl-0" id="navbarDulceContent">
+                
+                {% if user.is_authenticated %}
+                <!-- Cápsula Morada de Enlaces -->
+                <div class="nav-pill-wrapper mx-auto my-2 my-xl-0">
+                    <ul class="navbar-nav align-items-center gap-1">
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'dashboard' %}">
+                                <i class="bi bi-house-door-fill"></i> Inicio
+                            </a>
                         </li>
+                        
+                        {% if user.role in 'VENDEDOR,COCINERO,DUENO,ADMIN' %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'kanban' %}">
+                                <i class="bi bi-kanban-fill"></i> Kanban
+                            </a>
+                        </li>
+                        {% endif %}
+
+                        {% if user.role in 'VENDEDOR,DUENO,ADMIN' %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'crear_pedido' %}">
+                                <i class="bi bi-plus-circle-fill"></i> Nuevo Pedido
+                            </a>
+                        </li>
+                        {% endif %}
+
+                        {% if user.role in 'COCINERO,DUENO,ADMIN' %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'inventario' %}">
+                                <i class="bi bi-box-seam-fill"></i> Inventario (BOM)
+                            </a>
+                        </li>
+                        {% endif %}
+
+                        {% if user.role in 'REPARTIDOR,DUENO,ADMIN' %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'despachos' %}">
+                                <i class="bi bi-truck-front-fill"></i> Despachos
+                            </a>
+                        </li>
+                        {% endif %}
                     </ul>
                 </div>
+
+                <!-- Perfil del Usuario & Acciones -->
+                <div class="d-flex align-items-center gap-2 justify-content-end">
+                    
+                    <!-- Columna con API y Botón de Administrador -->
+                    <div class="d-flex flex-column gap-1 align-items-center">
+                        <a class="btn btn-swagger shadow-sm d-flex align-items-center gap-1" href="/api/docs/" target="_blank" title="Documentación interactiva de la API">
+                            <i class="bi bi-lightning-charge-fill text-warning"></i> API
+                        </a>
+
+                        {% if user.role == 'ADMIN' or user.is_staff %}
+                        <a class="btn btn-admin-panel d-flex align-items-center gap-1" href="/admin/" target="_blank" title="Panel Administrativo Django">
+                            <i class="bi bi-shield-lock-fill text-warning"></i> Admin
+                        </a>
+                        {% endif %}
+                    </div>
+
+                    <div class="user-chip">
+                        <i class="bi bi-person-circle fs-6" style="color: var(--brand-plum);"></i>
+                        <span class="fw-bold text-dark small">{{ user.username }}</span>
+                        <span class="role-badge">{{ user.get_role_display }}</span>
+                    </div>
+
+                    <a class="btn btn-logout" href="{% url 'logout' %}" title="Cerrar sesión activa">
+                        <i class="bi bi-box-arrow-right"></i>
+                    </a>
+                </div>
+
+                {% else %}
+                <!-- Acciones para Visitantes sin Sesión -->
+                <div class="d-flex align-items-center gap-2 ms-auto">
+                    <a class="btn btn-swagger text-dark me-1" href="/api/docs/" target="_blank">
+                        <i class="bi bi-lightning-charge-fill text-warning"></i> Swagger API
+                    </a>
+                    <a class="btn btn-outline-secondary rounded-pill px-4 btn-sm fw-semibold" href="{% url 'login' %}">
+                        Iniciar Sesión
+                    </a>
+                    <a class="btn btn-brand-primary btn-sm" href="{% url 'registro' %}">
+                        Registrarse
+                    </a>
+                </div>
+                {% endif %}
+
             </div>
+        </nav>
+    </header>
 
-        </div>
-    </nav>
-
-    <div class="container-fluid px-4 flex-grow-1 mb-5">
+    <!-- Contenido Principal -->
+    <main class="container-fluid px-4 flex-grow-1 my-3">
         {% block content %}{% endblock %}
-    </div>
+    </main>
 
-    <footer class="bg-white text-center py-4 mt-auto border-top">
+    <!-- Pie de Página Elegante -->
+    <footer class="bg-white text-center py-3 mt-auto border-top">
         <div class="container text-muted small">
-            Sistema de Trazabilidad y Pedidos | <strong>Dulce Arte</strong> &copy; 2026
+            Sistema de Trazabilidad y Pedidos | <strong style="color: var(--brand-plum);">Dulce Arte</strong> &copy; 2026
         </div>
     </footer>
 
