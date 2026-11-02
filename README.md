@@ -2,7 +2,7 @@
 
 Aplicación web y API REST para gestionar una pastelería: pedidos personalizados, tablero Kanban de producción, inventario de insumos con recetas (BOM) y despachos con comprobante fotográfico.
 
-Proyecto de la Evaluación 3 de Backend.
+Proyecto de la Evaluación 3 de Backend.(Para entrar pide superuser nombre:jorge123 contraseña:jorge123)
 
 **URL desplegada:** `http://<IP_PUBLICA_EC2>/`
 **Documentación Swagger:** `http://<IP_PUBLICA_EC2>/api/docs/`
