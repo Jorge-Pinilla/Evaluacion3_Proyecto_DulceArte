@@ -255,18 +255,18 @@
                 <!-- Perfil del Usuario & Acciones -->
                 <div class="d-flex align-items-center gap-2 justify-content-end">
                     
-                    <!-- Columna con API y Botón de Administrador -->
-                    <div class="d-flex flex-column gap-1 align-items-center">
+                    <!-- Columna con API y Botón de Administrador EXCLUSIVA para Dueño o Admin -->
+                    {% if user.role in 'ADMIN,DUENO' or user.is_staff %}
+                    <div class="d-flex flex-column gap-1 align-items-center me-2">
                         <a class="btn btn-swagger shadow-sm d-flex align-items-center gap-1" href="/api/docs/" target="_blank" title="Documentación interactiva de la API">
                             <i class="bi bi-lightning-charge-fill text-warning"></i> API
                         </a>
 
-                        {% if user.role == 'ADMIN' or user.is_staff %}
                         <a class="btn btn-admin-panel d-flex align-items-center gap-1" href="/admin/" target="_blank" title="Panel Administrativo Django">
                             <i class="bi bi-shield-lock-fill text-warning"></i> Admin
                         </a>
-                        {% endif %}
                     </div>
+                    {% endif %}
 
                     <div class="user-chip">
                         <i class="bi bi-person-circle fs-6" style="color: var(--brand-plum);"></i>
@@ -282,9 +282,6 @@
                 {% else %}
                 <!-- Acciones para Visitantes sin Sesión -->
                 <div class="d-flex align-items-center gap-2 ms-auto">
-                    <a class="btn btn-swagger text-dark me-1" href="/api/docs/" target="_blank">
-                        <i class="bi bi-lightning-charge-fill text-warning"></i> Swagger API
-                    </a>
                     <a class="btn btn-outline-secondary rounded-pill px-4 btn-sm fw-semibold" href="{% url 'login' %}">
                         Iniciar Sesión
                     </a>
