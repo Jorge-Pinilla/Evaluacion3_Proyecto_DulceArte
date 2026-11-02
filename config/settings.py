@@ -149,3 +149,10 @@ MEDIA_ROOT = BASE_DIR / 'media'
 LOGIN_URL = '/admin/login/'  # O una vista de login personalizada si la creas después
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ),
+}
