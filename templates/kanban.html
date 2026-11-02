@@ -56,10 +56,10 @@
     }
 
     /* Colores de Notas Post-it según la Estación */
-    .postit-recibido { background-color: #fff9c4 !important; }   /* Amarillo */
-    .postit-preparacion { background-color: #ffe0b2 !important; }/* Naranja pastel */
-    .postit-horneado { background-color: #e1f5fe !important; }   /* Azul pastel */
-    .postit-calidad { background-color: #e8f5e9 !important; }    /* Verde pastel */
+    .postit-recibido { background-color: #fff9c4 !important; }   
+    .postit-preparacion { background-color: #ffe0b2 !important; }
+    .postit-horneado { background-color: #e1f5fe !important; }   
+    .postit-calidad { background-color: #e8f5e9 !important; }    
 
     /* Imán Redondo en la Parte Superior de la Nota */
     .postit-magnet {
@@ -116,7 +116,6 @@
         <h2 class="fw-bold text-dark mb-1">📋 Tablero Kanban de Producción</h2>
         <p class="text-muted mb-0">Notas de pedidos organizadas por estaciones en la pizarra del taller.</p>
     </div>
-    <a href="{% url 'crear_pedido' %}" class="btn btn-primary shadow-sm">✨ Registrar Nuevo Pedido</a>
 </div>
 
 <!-- Contenedor Principal Estilo Pizarra -->
@@ -171,7 +170,8 @@
                             {% elif estado_val == 'HORNEADO' %}magnet-horneado
                             {% elif estado_val == 'CALIDAD' %}magnet-calidad{% endif %}"></div>
 
-                        <!-- Botón "X" para eliminar -->
+                        <!-- Botón "X" para eliminar: Oculto para Vendedores -->
+                        {% if user.role != 'VENDEDOR' %}
                         <button type="button" class="btn-close position-absolute top-0 end-0 m-2 shadow-none btn-eliminar" 
                                 style="font-size: 0.75rem; z-index: 5;"
                                 data-bs-toggle="modal" 
@@ -179,6 +179,7 @@
                                 data-pedido-id="{{ pedido.id }}"
                                 title="Eliminar pedido">
                         </button>
+                        {% endif %}
 
                         <div class="d-flex justify-content-between align-items-center mb-1 pe-4 pt-1">
                             <span class="badge bg-white text-dark fw-bold border shadow-sm" style="font-size: 0.75rem;">#{{ pedido.id }}</span>
@@ -192,15 +193,25 @@
                             "{{ pedido.detalles_diseno }}"
                         </div>
                         
-                        <!-- Selector Mover Estado -->
-                        <div class="mt-auto pt-2 border-top border-dark border-opacity-10">
-                            <label class="form-label text-muted mb-1" style="font-size: 0.65rem; font-weight: 700; letter-spacing: 0.5px;">MOVER A ESTADO:</label>
-                            <select class="form-select form-select-sm estado-select fw-semibold text-dark shadow-none border-secondary-subtle bg-white" data-pedido-id="{{ pedido.id }}">
-                                {% for e_val, e_nom in pedido.ESTADOS_KANBAN %}
-                                <option value="{{ e_val }}" {% if pedido.estado == e_val %}selected{% endif %}>{{ e_nom }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
+                        <!-- Restricción de permisos para Vendedores -->
+                        {% if user.role != 'VENDEDOR' %}
+                            <!-- Selector Mover Estado (Visible para Cocinero, Dueño, Admin) -->
+                            <div class="mt-auto pt-2 border-top border-dark border-opacity-10">
+                                <label class="form-label text-muted mb-1" style="font-size: 0.65rem; font-weight: 700; letter-spacing: 0.5px;">MOVER A ESTADO:</label>
+                                <select class="form-select form-select-sm estado-select fw-semibold text-dark shadow-none border-secondary-subtle bg-white" data-pedido-id="{{ pedido.id }}">
+                                    {% for e_val, e_nom in pedido.ESTADOS_KANBAN %}
+                                    <option value="{{ e_val }}" {% if pedido.estado == e_val %}selected{% endif %}>{{ e_nom }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        {% else %}
+                            <!-- Vista de Solo Lectura (Visible para Vendedores) -->
+                            <div class="mt-auto pt-2 border-top border-dark border-opacity-10 text-center">
+                                <span class="text-muted d-block mt-1" style="font-size: 0.7rem; font-weight: 700; letter-spacing: 0.5px;">
+                                    <i class="bi bi-eye-fill"></i> VISTA DE LECTURA
+                                </span>
+                            </div>
+                        {% endif %}
                     </div>
 
                     {% endif %}
@@ -260,13 +271,14 @@
         });
 
         const modalEliminar = document.getElementById('confirmarEliminarModal');
-        const formEliminar = document.getElementById('formEliminarPedido');
-
-        modalEliminar.addEventListener('show.bs.modal', function(event) {
-            const button = event.relatedTarget;
-            const pedidoId = button.getAttribute('data-pedido-id');
-            formEliminar.action = `/pedidos/${pedidoId}/eliminar/`;
-        });
+        if (modalEliminar) {
+            const formEliminar = document.getElementById('formEliminarPedido');
+            modalEliminar.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                const pedidoId = button.getAttribute('data-pedido-id');
+                formEliminar.action = `/pedidos/${pedidoId}/eliminar/`;
+            });
+        }
 
         document.querySelectorAll('.estado-select').forEach(select => {
             select.addEventListener('change', function() {

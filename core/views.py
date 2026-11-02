@@ -272,13 +272,22 @@ def inventario_view(request):
 
 @login_required
 def despachos_view(request):
-    """Muestra las rutas activas. Accesible para Repartidor, Dueño y Admin."""
+    """Muestra las rutas activas solo para pedidos que están 'LISTO' para despacho."""
     if request.user.role not in ['REPARTIDOR', 'DUENO', 'ADMIN']:
         messages.error(request, 'No tienes permisos para acceder al módulo de despachos.')
         return redirect('dashboard')
 
-    despachos = Despacho.objects.filter(confirmacion_firma=False).order_by('pedido__fecha_entrega')
-    pedidos_sin_despacho = Pedido.objects.filter(despacho__isnull=True).exclude(estado='DESPACHADO')
+    # Filtra los despachos mostrando solo aquellos cuyo pedido asociado esté en estado 'LISTO'
+    despachos = Despacho.objects.filter(
+        confirmacion_firma=False, 
+        pedido__estado='LISTO'
+    ).order_by('pedido__fecha_entrega')
+    
+    # Filtra los pedidos manuales que estén en estado 'LISTO' pero sin despacho asignado
+    pedidos_sin_despacho = Pedido.objects.filter(
+        despacho__isnull=True, 
+        estado='LISTO'
+    ).order_by('fecha_entrega')
     
     return render(request, 'despachos.html', {
         'despachos': despachos,

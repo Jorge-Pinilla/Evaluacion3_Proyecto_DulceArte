@@ -1,136 +1,204 @@
 {% extends 'base.html' %}
 {% block content %}
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<style>
+    /* Estilos Modernos para Tarjetas de Despacho */
+    .despacho-card {
+        background: #ffffff;
+        border: 1px solid rgba(60, 19, 58, 0.08);
+        border-radius: 1.25rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        overflow: hidden;
+    }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+    .despacho-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 25px rgba(60, 19, 58, 0.08);
+    }
+
+    .despacho-header {
+        background: rgba(244, 238, 244, 0.5);
+        border-bottom: 1px solid rgba(60, 19, 58, 0.05);
+        padding: 1rem 1.25rem;
+    }
+
+    .info-label {
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        color: #8a7388;
+        text-transform: uppercase;
+        margin-bottom: 0.2rem;
+    }
+
+    .address-box {
+        background: #fdfcfd;
+        border-left: 3px solid var(--brand-plum);
+        border-radius: 0 0.5rem 0.5rem 0;
+        padding: 0.75rem 1rem;
+    }
+
+    /* Canvas para Firma Digital */
+    #firmaCanvas {
+        border: 2px dashed #ced4da;
+        border-radius: 0.75rem;
+        cursor: crosshair;
+        background-color: #fdfcfd;
+        width: 100%;
+        touch-action: none; /* Previene el scroll al firmar en móviles */
+    }
+</style>
+
+<!-- Encabezado de la Vista -->
+<div class="d-flex justify-content-between align-items-end mb-4">
     <div>
-        <h2 class="fw-bold text-dark mb-1">🚚 Rutas de Despacho Activas</h2>
+        <h2 class="fw-bold text-dark mb-1">Rutas de Despacho Activas</h2>
         <p class="text-muted mb-0">Gestiona las entregas asignadas, firma digitalmente la recepción o sube el comprobante fotográfico.</p>
     </div>
-    
-    {% if pedidos_sin_despacho %}
-    <button type="button" class="btn btn-outline-primary rounded-pill shadow-sm" data-bs-toggle="modal" data-bs-target="#crearDespachoModal">
-        <i class="bi bi-plus-lg me-1"></i> Asignar Pedido Existente
+    {% if user.role in 'ADMIN,DUENO' %}
+    <button type="button" class="btn btn-brand-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#asignarDespachoModal">
+        <i class="bi bi-plus-lg me-1"></i> Asignar Manual
     </button>
     {% endif %}
 </div>
 
+<!-- Cuadrícula de Tarjetas de Despacho -->
 <div class="row g-4">
     {% for despacho in despachos %}
-    <div class="col-md-6 col-lg-4">
-        <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden border-top border-4" style="border-top-color: #3c133a !important;">
+    <div class="col-12 col-md-6 col-xl-4">
+        <div class="despacho-card h-100 d-flex flex-column">
+            
+            <div class="despacho-header d-flex justify-content-between align-items-center">
+                <span class="badge bg-white text-dark border border-secondary-subtle px-2 py-1 shadow-sm">
+                    Pedido #{{ despacho.pedido.id }}
+                </span>
+                <span class="text-muted fw-semibold small">
+                    <i class="bi bi-calendar3 me-1"></i>{{ despacho.pedido.fecha_entrega|date:"d/m H:i" }}
+                </span>
+            </div>
+
             <div class="card-body p-4 d-flex flex-column">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <span class="badge bg-light text-dark border fw-bold">Pedido #{{ despacho.pedido.id }}</span>
-                    <small class="text-muted fw-semibold">📅 {{ despacho.pedido.fecha_entrega|date:"d/m H:i" }}</small>
-                </div>
+                <h5 class="fw-bold text-dark mb-1">{{ despacho.pedido.producto.nombre }}</h5>
+                <p class="text-muted small mb-3">
+                    <i class="bi bi-person-circle me-1"></i> Cliente: <strong class="text-dark">{% if despacho.pedido.nombre_cliente %}{{ despacho.pedido.nombre_cliente }}{% else %}{{ despacho.pedido.cliente.username }}{% endif %}</strong>
+                </p>
 
-                <h5 class="fw-bold text-dark mb-1">🎂 {{ despacho.pedido.producto.nombre }}</h5>
-                <p class="small text-muted mb-3">👤 Cliente: <strong>{% if despacho.pedido.nombre_cliente %}{{ despacho.pedido.nombre_cliente }}{% else %}{{ despacho.pedido.cliente.username }}{% endif %}</strong></p>
-
-                <div class="p-3 rounded-3 mb-3" style="background-color: #f8f0f8; border-left: 4px solid #3c133a;">
-                    <small class="text-uppercase fw-bold text-muted d-block mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">DIRECCIÓN DE ENTREGA:</label>
-                    <p class="mb-0 fw-semibold text-dark" style="font-size: 0.9rem;">📍 {{ despacho.direccion_entrega }}</p>
+                <div class="address-box mb-3">
+                    <div class="info-label">Dirección de Entrega</div>
+                    <div class="fw-semibold text-dark fs-6">
+                        <i class="bi bi-geo-alt-fill text-danger me-1"></i> {{ despacho.direccion_entrega }}
+                    </div>
                 </div>
 
                 {% if despacho.pedido.detalles_diseno %}
-                <p class="small text-secondary mb-4 bg-light p-2 rounded border border-light">
-                    {{ despacho.pedido.detalles_diseno }}
-                </p>
+                <div class="mb-4">
+                    <div class="info-label">Notas del Cliente</div>
+                    <p class="small text-secondary mb-0 fst-italic">"{{ despacho.pedido.detalles_diseno }}"</p>
+                </div>
                 {% endif %}
 
-                <div class="mt-auto pt-3 border-top d-flex justify-content-between align-items-center">
-                    <span class="badge bg-warning text-dark px-3 py-2 rounded-pill"><i class="bi bi-clock-history me-1"></i> En Ruta</span>
-                    
-                    <button type="button" class="btn btn-primary btn-sm px-3 rounded-pill fw-semibold btn-completar"
+                <div class="mt-auto d-flex justify-content-between align-items-center pt-3 border-top border-light-subtle">
+                    <span class="badge rounded-pill bg-warning text-dark fw-bold px-3 py-2">
+                        <i class="bi bi-truck me-1"></i> En Ruta
+                    </span>
+                    <button type="button" class="btn btn-primary rounded-pill px-4 fw-semibold btn-completar"
                             data-bs-toggle="modal" 
-                            data-bs-target="#completarModal"
+                            data-bs-target="#completarDespachoModal"
                             data-despacho-id="{{ despacho.id }}"
-                            data-cliente="{% if despacho.pedido.nombre_cliente %}{{ despacho.pedido.nombre_cliente }}{% else %}{{ despacho.pedido.cliente.username }}{% endif %}">
-                        <i class="bi bi-check-circle me-1"></i> Completar Entrega
+                            data-pedido-id="{{ despacho.pedido.id }}">
+                        <i class="bi bi-check-circle me-1"></i> Completar
                     </button>
                 </div>
             </div>
+
         </div>
     </div>
     {% empty %}
-    <div class="col-12">
-        <div class="text-center py-5 bg-white rounded-4 shadow-sm">
-            <i class="bi bi-check2-circle text-success fs-1 d-block mb-2"></i>
-            <h5 class="fw-bold text-dark mb-1">¡No hay despachos pendientes!</h5>
-            <p class="text-muted small mb-0">Todas las rutas han sido entregadas y confirmadas correctamente.</p>
-        </div>
+    <div class="col-12 text-center py-5">
+        <i class="bi bi-box2-heart text-muted" style="font-size: 3rem;"></i>
+        <h5 class="text-muted mt-3 fw-semibold">No hay despachos pendientes en ruta</h5>
     </div>
     {% endfor %}
 </div>
 
-<!-- Modal 1: Completar Entrega con Firma y/o Foto -->
-<div class="modal fade" id="completarModal" tabindex="-1" aria-hidden="true">
+<!-- Modal para Completar Despacho (Firma / Foto) -->
+<div class="modal fade" id="completarDespachoModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
-            <div class="modal-header border-0 pb-0 pt-4 px-4">
-                <h5 class="modal-title fw-bold text-dark">✍️ Confirmación de Entrega</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-header border-0 pb-0 pt-4 px-4 bg-white">
+                <h5 class="modal-title fw-bold text-dark">Confirmar Entrega <span id="modalPedidoId" class="text-muted fs-6 ms-1"></span></h5>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form id="formCompletar" method="POST" enctype="multipart/form-data" action="">
+            <form id="formCompletarDespacho" method="POST" action="" enctype="multipart/form-data">
                 {% csrf_token %}
                 <div class="modal-body px-4 py-3">
-                    <p class="text-muted small mb-3">Registra la firma digital del cliente o adjunta una fotografía del comprobante de recepción.</p>
-
-                    <!-- Firma Digital en Panel Canvas -->
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold mb-1">Firma Digital del Cliente</label>
-                        <div class="border rounded-3 overflow-hidden bg-white text-center position-relative">
-                            <canvas id="signatureCanvas" width="400" height="150" style="touch-action: none; cursor: crosshair;"></canvas>
-                            <button type="button" id="btnClearSignature" class="btn btn-light btn-sm position-absolute top-0 end-0 m-2 border" title="Limpiar firma">
-                                <i class="bi bi-eraser me-1"></i> Limpiar
+                    <p class="text-muted small mb-4">Para finalizar la ruta, el cliente debe firmar la pantalla o debes adjuntar una fotografía del comprobante de entrega en el domicilio.</p>
+                    
+                    <!-- Pestañas -->
+                    <ul class="nav nav-pills mb-3 nav-fill" id="pills-tab" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active rounded-pill fw-semibold" id="pills-firma-tab" data-bs-toggle="pill" data-bs-target="#pills-firma" type="button" role="tab">Firma Digital</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link rounded-pill fw-semibold" id="pills-foto-tab" data-bs-toggle="pill" data-bs-target="#pills-foto" type="button" role="tab">Comprobante Fotográfico</button>
+                        </li>
+                    </ul>
+                    
+                    <div class="tab-content" id="pills-tabContent">
+                        <!-- Pestaña Firma -->
+                        <div class="tab-pane fade show active" id="pills-firma" role="tabpanel">
+                            <label class="info-label mb-2">Firma del Cliente</label>
+                            <canvas id="firmaCanvas" height="200"></canvas>
+                            <button type="button" class="btn btn-sm btn-outline-secondary mt-2 rounded-pill fw-semibold" id="btnLimpiarFirma">
+                                <i class="bi bi-eraser-fill me-1"></i> Limpiar Firma
                             </button>
+                            <input type="hidden" name="firma_base64" id="firmaInput">
+                        </div>
+                        
+                        <!-- Pestaña Foto -->
+                        <div class="tab-pane fade" id="pills-foto" role="tabpanel">
+                            <label class="info-label mb-2">Subir Fotografía</label>
+                            <input class="form-control rounded-3" type="file" name="foto_comprobante" accept="image/*" capture="environment">
                         </div>
                     </div>
-
-                    <!-- Foto Comprobante -->
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Comprobante Fotográfico (Opcional)</label>
-                        <input type="file" name="foto_comprobante" accept="image/*" class="form-control" style="border-radius: 0.75rem;">
-                    </div>
                 </div>
-                <div class="modal-footer border-0 pb-4 px-4 d-flex justify-content-end gap-2">
-                    <button type="button" class="btn btn-outline-secondary px-4 rounded-pill fw-semibold" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-success px-4 rounded-pill fw-semibold shadow-sm">Confirmar Entrega</button>
+                <div class="modal-footer border-0 pb-4 px-4 bg-white">
+                    <button type="button" class="btn btn-light rounded-pill px-4 fw-semibold" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-brand-primary rounded-pill px-4 fw-semibold" id="btnProcesarEntrega">Confirmar Entrega</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
-<!-- Modal 2: Asignar Pedido Existente a Despacho -->
-{% if pedidos_sin_despacho %}
-<div class="modal fade" id="crearDespachoModal" tabindex="-1" aria-hidden="true">
+<!-- Modal para Asignar Despacho Manual -->
+{% if user.role in 'ADMIN,DUENO' %}
+<div class="modal fade" id="asignarDespachoModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
             <div class="modal-header border-0 pb-0 pt-4 px-4">
-                <h5 class="modal-title fw-bold text-dark">🚚 Asignar Ruta de Despacho</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h5 class="modal-title fw-bold text-dark">Asignar Despacho Manual</h5>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"></button>
             </div>
-            <form action="{% url 'crear_despacho_manual' %}" method="POST">
+            <form method="POST" action="{% url 'crear_despacho_manual' %}">
                 {% csrf_token %}
                 <div class="modal-body px-4 py-3">
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Seleccionar Pedido Pendiente</label>
-                        <select name="pedido_id" class="form-select" required style="border-radius: 0.75rem;">
-                            {% for p in pedidos_sin_despacho %}
-                            <option value="{{ p.id }}">Pedido #{{ p.id }} - {{ p.producto.nombre }} ({% if p.nombre_cliente %}{{ p.nombre_cliente }}{% else %}{{ p.cliente.username }}{% endif %})</option>
+                        <label class="info-label">Seleccionar Pedido (Estado: Listo)</label>
+                        <select class="form-select rounded-3" name="pedido_id" required>
+                            <option value="">Seleccione un pedido...</option>
+                            {% for pedido in pedidos_sin_despacho %}
+                            <option value="{{ pedido.id }}">#{{ pedido.id }} - {{ pedido.producto.nombre }} ({{ pedido.fecha_entrega|date:"d/m" }})</option>
                             {% endfor %}
                         </select>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Dirección de Entrega</label>
-                        <input type="text" name="direccion_entrega" class="form-control" placeholder="Ej: Av. Alemania 01234, Temuco" required style="border-radius: 0.75rem;">
+                    <div class="mb-2">
+                        <label class="info-label">Dirección de Entrega</label>
+                        <input type="text" class="form-control rounded-3" name="direccion_entrega" placeholder="Ej: Av. Principal 123" required>
                     </div>
                 </div>
-                <div class="modal-footer border-0 pb-4 px-4 d-flex justify-content-end gap-2">
-                    <button type="button" class="btn btn-outline-secondary px-4 rounded-pill fw-semibold" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-primary px-4 rounded-pill fw-semibold shadow-sm">Crear Ruta</button>
+                <div class="modal-footer border-0 pb-4 px-4">
+                    <button type="submit" class="btn btn-brand-primary rounded-pill w-100 fw-semibold">Asignar a Ruta</button>
                 </div>
             </form>
         </div>
@@ -142,42 +210,104 @@
 {% block scripts %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const completarModal = document.getElementById('completarModal');
-        const formCompletar = document.getElementById('formCompletar');
-        const canvas = document.getElementById('signatureCanvas');
-        const ctx = canvas.getContext('2d');
-        const btnClear = document.getElementById('btnClearSignature');
-        let drawing = false;
+        // --- 1. Lógica para configurar el ID del Despacho en el Modal ---
+        const modalCompletar = document.getElementById('completarDespachoModal');
+        const formCompletar = document.getElementById('formCompletarDespacho');
+        const spanPedidoId = document.getElementById('modalPedidoId');
 
-        // Configuración de trazo del Canvas para firma digital
-        ctx.lineWidth = 2.5;
-        ctx.lineCap = 'round';
-        ctx.strokeStyle = '#3c133a';
-
-        function getPos(e) {
-            const rect = canvas.getBoundingClientRect();
-            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-            return { x: clientX - rect.left, y: clientY - rect.top };
+        if (modalCompletar) {
+            modalCompletar.addEventListener('show.bs.modal', function (event) {
+                const button = event.relatedTarget;
+                const despachoId = button.getAttribute('data-despacho-id');
+                const pedidoId = button.getAttribute('data-pedido-id');
+                
+                // Actualiza la URL de acción del formulario dinámicamente
+                formCompletar.action = `/despachos/${despachoId}/completar/`;
+                spanPedidoId.textContent = `(Pedido #${pedidoId})`;
+                
+                // Limpia el canvas al abrir un nuevo modal
+                limpiarCanvas();
+            });
         }
 
-        canvas.addEventListener('mousedown', (e) => { drawing = true; ctx.beginPath(); const pos = getPos(e); ctx.moveTo(pos.x, pos.y); });
-        canvas.addEventListener('mousemove', (e) => { if (!drawing) return; const pos = getPos(e); ctx.lineTo(pos.x, pos.y); ctx.stroke(); });
-        canvas.addEventListener('mouseup', () => drawing = false);
+        // --- 2. Lógica del Canvas para Firma Digital ---
+        const canvas = document.getElementById('firmaCanvas');
+        const ctx = canvas.getContext('2d');
+        const btnLimpiar = document.getElementById('btnLimpiarFirma');
+        const formFirmaInput = document.getElementById('firmaInput');
         
-        // Soporte Táctil para móviles/tablets del repartidor
-        canvas.addEventListener('touchstart', (e) => { drawing = true; ctx.beginPath(); const pos = getPos(e); ctx.moveTo(pos.x, pos.y); });
-        canvas.addEventListener('touchmove', (e) => { if (!drawing) return; e.preventDefault(); const pos = getPos(e); ctx.lineTo(pos.x, pos.y); ctx.stroke(); });
-        canvas.addEventListener('touchend', () => drawing = false);
+        let isDrawing = false;
+        let hasSignature = false;
 
-        btnClear.addEventListener('click', () => { ctx.clearRect(0, 0, canvas.width, canvas.height); });
+        // Ajustar el canvas al tamaño real del contenedor
+        function resizeCanvas() {
+            const rect = canvas.parentElement.getBoundingClientRect();
+            canvas.width = rect.width;
+            ctx.lineWidth = 3;
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = '#3c133a';
+        }
+        
+        // Se ejecuta al cargar y al abrir el modal para que las dimensiones sean correctas
+        modalCompletar.addEventListener('shown.bs.modal', resizeCanvas);
+        window.addEventListener('resize', resizeCanvas);
 
-        completarModal.addEventListener('show.bs.modal', function(event) {
-            const button = event.relatedTarget;
-            const despachoId = button.getAttribute('data-despacho-id');
-            formCompletar.action = `/despachos/${despachoId}/completar/`;
+        function startDrawing(e) {
+            isDrawing = true;
+            hasSignature = true;
+            draw(e);
+        }
+
+        function stopDrawing() {
+            isDrawing = false;
+            ctx.beginPath();
+            
+            // Si hay firma, guarda el base64 en el input oculto
+            if (hasSignature) {
+                formFirmaInput.value = canvas.toDataURL('image/png');
+            }
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+            
+            e.preventDefault(); // Previene scroll en móviles
+            
+            const rect = canvas.getBoundingClientRect();
+            let x, y;
+
+            if (e.type.includes('touch')) {
+                x = e.touches[0].clientX - rect.left;
+                y = e.touches[0].clientY - rect.top;
+            } else {
+                x = e.clientX - rect.left;
+                y = e.clientY - rect.top;
+            }
+
+            ctx.lineTo(x, y);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+        }
+
+        function limpiarCanvas() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-        });
+            formFirmaInput.value = "";
+            hasSignature = false;
+        }
+
+        // Eventos Mouse
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
+
+        // Eventos Táctiles
+        canvas.addEventListener('touchstart', startDrawing, {passive: false});
+        canvas.addEventListener('touchmove', draw, {passive: false});
+        canvas.addEventListener('touchend', stopDrawing);
+
+        btnLimpiar.addEventListener('click', limpiarCanvas);
     });
 </script>
 {% endblock %}

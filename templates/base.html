@@ -300,10 +300,22 @@
         {% block content %}{% endblock %}
     </main>
 
-    <!-- Pie de Página Elegante -->
-    <footer class="bg-white text-center py-3 mt-auto border-top">
-        <div class="container text-muted small">
-            Sistema de Trazabilidad y Pedidos | <strong style="color: var(--brand-plum);">Dulce Arte</strong> &copy; 2026
+    <!-- Pie de Página Elegante con Firma -->
+    <footer class="bg-white py-3 mt-auto border-top shadow-sm">
+        <div class="container-fluid px-4">
+            <div class="row align-items-center">
+                <!-- Izquierda: Copyright -->
+                <div class="col-md-6 text-center text-md-start text-muted small mb-2 mb-md-0">
+                    Sistema de Trazabilidad y Pedidos | <strong style="color: var(--brand-plum);">Dulce Arte</strong> &copy; 2026
+                </div>
+                
+                <!-- Derecha: Datos del Desarrollador -->
+                <div class="col-md-6 text-center text-md-end">
+                    <span class="badge" style="background-color: #270b25; color: #e0a3d7; font-weight: 500; padding: 0.5rem 1rem; border-radius: 50rem; font-size: 0.75rem; letter-spacing: 0.3px;">
+                        Desarrollado por: <strong class="text-white">Jorge Ignacio Pinilla Muñoz</strong> | Sección: <strong class="text-white">AP-N4-C2</strong> | Año: <strong class="text-white">2026</strong>
+                    </span>
+                </div>
+            </div>
         </div>
     </footer>
 
