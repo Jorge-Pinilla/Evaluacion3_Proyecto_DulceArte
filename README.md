@@ -4,9 +4,9 @@ Aplicación web y API REST para gestionar una pastelería: pedidos personalizado
 
 Proyecto de la Evaluación 3 de Backend.(Para entrar pide superuser nombre:jorge123 contraseña:jorge123)
 
-**URL desplegada:** `http://<IP_PUBLICA_EC2>/`
-**Documentación Swagger:** `http://<IP_PUBLICA_EC2>/api/docs/`
-**Panel admin:** `http://<IP_PUBLICA_EC2>/admin/`
+**URL desplegada:** `http://http://172.31.23.170//`
+**Documentación Swagger:** `http://172.31.23.170//api/docs/`
+**Panel admin:** `http://172.31.23.170/)/admin/`
 
 ## Tecnologías
 
